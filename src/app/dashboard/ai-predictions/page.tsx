@@ -3,7 +3,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { Bell, Clock, Sun, Moon, X as XIcon } from 'lucide-react';
+import { Bell, Clock, Sun, Moon, X as XIcon, PlusCircle } from 'lucide-react';
 
 export default function AiPredictionsPage() {
   const { user, loading } = useAuth();
@@ -16,6 +16,10 @@ export default function AiPredictionsPage() {
   const [timeframeFilter, setTimeframeFilter] = useState('All');
   const [showAssetDropdown, setShowAssetDropdown] = useState(false);
   const assetDropdownTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalAsset, setModalAsset] = useState('');
+  const [modalDays, setModalDays] = useState('');
+  const [modalNotes, setModalNotes] = useState('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -68,80 +72,88 @@ export default function AiPredictionsPage() {
               <button onClick={() => setShowInfo(false)} className="ml-4 text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 text-xl leading-none">&times;</button>
             </div>
           )}
-          {/* Filters */}
-          <div className="flex flex-wrap gap-4 mb-4 items-center">
-            {/* Asset Multiselect */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Assets</label>
+          {/* Filters and Ask Button Row */}
+          <div className="flex flex-wrap gap-4 mb-4 items-end justify-between">
+            <div className="flex flex-wrap gap-4 items-center">
+              {/* Asset Multiselect */}
               <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search assets..."
-                  value={assetSearch}
-                  onChange={e => setAssetSearch(e.target.value)}
-                  onFocus={() => setShowAssetDropdown(true)}
-                  onBlur={() => {
-                    assetDropdownTimeout.current = setTimeout(() => setShowAssetDropdown(false), 120);
-                  }}
-                  className="w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white pr-8"
-                />
-                {assetSearch && (
-                  <button
-                    type="button"
-                    className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    onClick={() => setAssetSearch('')}
-                    tabIndex={-1}
-                  >
-                    <XIcon className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              {showAssetDropdown && (
-                <div
-                  className="absolute z-10 mt-1 max-h-32 w-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm"
-                  onMouseDown={e => e.preventDefault()}
-                >
-                  {allAssets.filter(a => a.toLowerCase().includes(assetSearch.toLowerCase())).map(asset => (
-                    <label key={asset} className="flex items-center px-3 py-1 cursor-pointer text-sm text-slate-700 dark:text-slate-200">
-                      <input
-                        type="checkbox"
-                        checked={selectedAssets.includes(asset)}
-                        onChange={e => {
-                          setSelectedAssets(sel =>
-                            e.target.checked
-                              ? [...sel, asset]
-                              : sel.filter(a => a !== asset)
-                          );
-                        }}
-                        className="mr-2 accent-blue-500"
-                        onClick={() => {
-                          if (assetDropdownTimeout.current) clearTimeout(assetDropdownTimeout.current);
-                        }}
-                      />
-                      {asset}
-                    </label>
-                  ))}
-                  {allAssets.filter(a => a.toLowerCase().includes(assetSearch.toLowerCase())).length === 0 && (
-                    <div className="px-3 py-2 text-slate-400">No assets found</div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Assets</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search assets..."
+                    value={assetSearch}
+                    onChange={e => setAssetSearch(e.target.value)}
+                    onFocus={() => setShowAssetDropdown(true)}
+                    onBlur={() => {
+                      assetDropdownTimeout.current = setTimeout(() => setShowAssetDropdown(false), 120);
+                    }}
+                    className="w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white pr-8"
+                  />
+                  {assetSearch && (
+                    <button
+                      type="button"
+                      className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      onClick={() => setAssetSearch('')}
+                      tabIndex={-1}
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
-              )}
+                {showAssetDropdown && (
+                  <div
+                    className="absolute z-10 mt-1 max-h-32 w-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm"
+                    onMouseDown={e => e.preventDefault()}
+                  >
+                    {allAssets.filter(a => a.toLowerCase().includes(assetSearch.toLowerCase())).map(asset => (
+                      <label key={asset} className="flex items-center px-3 py-1 cursor-pointer text-sm text-slate-700 dark:text-slate-200">
+                        <input
+                          type="checkbox"
+                          checked={selectedAssets.includes(asset)}
+                          onChange={e => {
+                            setSelectedAssets(sel =>
+                              e.target.checked
+                                ? [...sel, asset]
+                                : sel.filter(a => a !== asset)
+                            );
+                          }}
+                          className="mr-2 accent-blue-500"
+                          onClick={() => {
+                            if (assetDropdownTimeout.current) clearTimeout(assetDropdownTimeout.current);
+                          }}
+                        />
+                        {asset}
+                      </label>
+                    ))}
+                    {allAssets.filter(a => a.toLowerCase().includes(assetSearch.toLowerCase())).length === 0 && (
+                      <div className="px-3 py-2 text-slate-400">No assets found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* Timeframe Filter */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Timeframe</label>
+                <select
+                  value={timeframeFilter}
+                  onChange={e => setTimeframeFilter(e.target.value)}
+                  className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                >
+                  <option>All</option>
+                  <option>24h</option>
+                  <option>3d</option>
+                  <option>7d</option>
+                  <option>30d</option>
+                </select>
+              </div>
             </div>
-            {/* Timeframe Filter */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Timeframe</label>
-              <select
-                value={timeframeFilter}
-                onChange={e => setTimeframeFilter(e.target.value)}
-                className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
-              >
-                <option>All</option>
-                <option>24h</option>
-                <option>3d</option>
-                <option>7d</option>
-                <option>30d</option>
-              </select>
-            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors text-sm font-medium whitespace-nowrap"
+            >
+              <PlusCircle className="w-4 h-4" /> Ask for prediction
+            </button>
           </div>
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
@@ -181,6 +193,64 @@ export default function AiPredictionsPage() {
               )}
             </div>
           </div>
+
+          {/* Modal */}
+          {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 relative">
+                <button
+                  className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                  onClick={() => setShowModal(false)}
+                  aria-label="Close"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Ask for AI Prediction</h2>
+                <form className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Coin/Company</label>
+                    <input
+                      type="text"
+                      value={modalAsset}
+                      onChange={e => setModalAsset(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                      placeholder="e.g. Bitcoin, Apple"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Days to Predict</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={modalDays}
+                      onChange={e => setModalDays(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                      placeholder="e.g. 7"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Notes (optional)</label>
+                    <textarea
+                      value={modalNotes}
+                      onChange={e => setModalNotes(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                      rows={3}
+                      placeholder="Any additional info or requirements..."
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow text-sm font-medium"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Submit Request
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
