@@ -16,9 +16,12 @@ import {
   ChevronRight,
   ChevronLeft,
   Sun,
-  Moon
+  Moon,
+  CheckCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from '../../../contexts/SocketContext';
+import confetti from 'canvas-confetti';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, href: '/dashboard' },
@@ -35,11 +38,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState('overview');
+  const { socket } = useSocket();
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
+
+  // Confetti moved to root layout
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -56,6 +62,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
+
+
       {/* Sidebar */}
       <motion.div
         animate={{ width: sidebarCollapsed ? 80 : 288 }}

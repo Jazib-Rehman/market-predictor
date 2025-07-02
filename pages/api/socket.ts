@@ -4,15 +4,15 @@ import type { NextApiResponse } from 'next';
 
 type NextApiResponseWithSocket = NextApiResponse & {
   socket: {
-    server: {
-      io?: any;
-    };
+    server: any;
   };
 };
 
 const ioHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (!res.socket.server.io) {
-    const io = new Server(res.socket.server as any, {
+    console.log('Initializing Socket.IO server...');
+    
+    const io = new Server(res.socket.server, {
       path: '/api/socket',
       addTrailingSlash: false,
       cors: {
@@ -20,18 +20,28 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
         methods: ['GET', 'POST'],
       },
     });
+    
     res.socket.server.io = io;
+    
     io.on('connection', (socket) => {
       console.log('Socket connected:', socket.id);
+      
       socket.on('disconnect', () => {
         console.log('Socket disconnected:', socket.id);
       });
     });
-    // Emit celebrate event every 20 seconds
-    setInterval(() => {
-      io.emit('celebrate');
-    }, 20000);
+    
+    // Test confetti - uncomment to test
+    setTimeout(() => {
+      console.log('Emitting test celebrate event');
+      io.emit('celebrate', {asset: 'Bitcoin', direction: 'up'});
+    }, 3000);
+    
+    console.log('Socket.IO server initialized');
+  } else {
+    console.log('Socket.IO server already running');
   }
+  
   res.end();
 };
 

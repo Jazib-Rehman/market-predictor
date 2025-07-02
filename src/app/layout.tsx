@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "../../contexts/AuthContext";
 import { ThemeProvider } from "../../contexts/ThemeContext";
 import { SocketProvider } from '../../contexts/SocketContext';
+import GlobalNotifications from '../../components/GlobalNotifications';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,6 +29,7 @@ export default function RootLayout({
         <SocketProvider>
           <ThemeProvider>
             <AuthProvider>
+              <GlobalNotifications />
               {children}
             </AuthProvider>
           </ThemeProvider>

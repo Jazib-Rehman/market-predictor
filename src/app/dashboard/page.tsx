@@ -49,21 +49,7 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!socket) return;
-    const handler = () => {
-      confetti({
-        particleCount: 200,
-        spread: 90,
-        origin: { y: 0.7 },
-        zIndex: 9999,
-      });
-    };
-    socket.on('celebrate', handler);
-    return () => {
-      socket.off('celebrate', handler);
-    };
-  }, [socket]);
+  // Confetti moved to layout
 
   const handleLogout = () => {
     logout();
