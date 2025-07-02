@@ -39,15 +39,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check if user is logged in on app start
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // TODO: Validate token with backend
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
+    const checkAuth = async () => {
+      try {
+        // Validate token with backend (cookie is sent automatically)
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -58,6 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -66,13 +76,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Save token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Also set cookie for middleware
-      document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 days
-      
       setUser(data.user);
     } catch (error) {
       console.error('Login error:', error);
@@ -88,6 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password, name }),
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -96,13 +100,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Save token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Also set cookie for middleware
-      document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 days
-      
       setUser(data.user);
     } catch (error) {
       console.error('Registration error:', error);
@@ -110,13 +107,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    
-    // Also clear cookie
-    document.cookie = 'token=; path=/; max-age=0';
-    
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { 
+        method: 'POST', 
+        credentials: 'include' 
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     setUser(null);
   };
 

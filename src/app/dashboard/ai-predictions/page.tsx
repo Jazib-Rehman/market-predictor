@@ -22,12 +22,6 @@ export default function AiPredictionsPage() {
   const [modalNotes, setModalNotes] = useState('');
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -54,7 +48,6 @@ export default function AiPredictionsPage() {
       </div>
     );
   }
-  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">

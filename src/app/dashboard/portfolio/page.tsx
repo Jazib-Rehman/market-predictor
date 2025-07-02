@@ -9,12 +9,6 @@ export default function PortfolioPage() {
   const { theme } = useTheme();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
@@ -22,7 +16,6 @@ export default function PortfolioPage() {
       </div>
     );
   }
-  if (!user) return null;
 
   return (
     <div className="space-y-6">

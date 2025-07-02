@@ -3,7 +3,7 @@
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -27,6 +27,8 @@ import {
   Moon
 } from 'lucide-react';
 import SimpleChart from '../../../components/SimpleChart';
+import { useSocket } from '../../../contexts/SocketContext';
+import confetti from 'canvas-confetti';
 
 export default function DashboardPage() {
   const { user, logout, loading } = useAuth();
@@ -35,12 +37,9 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { socket } = useSocket();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+  // Middleware handles auth redirect, no need for client-side check
 
   // Update clock every second
   useEffect(() => {
@@ -49,6 +48,22 @@ export default function DashboardPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      confetti({
+        particleCount: 200,
+        spread: 90,
+        origin: { y: 0.7 },
+        zIndex: 9999,
+      });
+    };
+    socket.on('celebrate', handler);
+    return () => {
+      socket.off('celebrate', handler);
+    };
+  }, [socket]);
 
   const handleLogout = () => {
     logout();

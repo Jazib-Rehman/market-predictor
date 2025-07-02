@@ -53,7 +53,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
-  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
@@ -81,7 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
-                const isActive = pathname === tab.href || (tab.href !== '/dashboard' && pathname.startsWith(tab.href));
+                const isActive = !!pathname && (pathname === tab.href || (tab.href !== '/dashboard' && pathname.startsWith(tab.href)));
                 return (
                   <button
                     key={tab.id}
@@ -118,13 +117,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-8 h-8 bg-slate-300 dark:bg-slate-600 rounded-full flex items-center justify-center">
                 <span className="text-slate-700 dark:text-white font-medium text-sm">
-                  {user.name.charAt(0).toUpperCase()}
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
               {!sidebarCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name || 'User'}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
                 </div>
               )}
             </div>

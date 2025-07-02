@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       email: user.email,
     });
 
-    // Return user data (without password) and token
+    // Return user data (without password)
     const userData = {
       id: user._id,
       email: user.email,
@@ -50,14 +50,26 @@ export async function POST(request: NextRequest) {
       createdAt: user.createdAt,
     };
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         message: 'User registered successfully',
         user: userData,
-        token,
       },
       { status: 201 }
     );
+
+    // Set HTTP-only cookie
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Registration error:', error);
     

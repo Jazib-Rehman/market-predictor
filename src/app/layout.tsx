@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../../contexts/AuthContext";
 import { ThemeProvider } from "../../contexts/ThemeContext";
+import { SocketProvider } from '../../contexts/SocketContext';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,11 +25,13 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased transition-colors duration-300`}
       >
-        <ThemeProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+        <SocketProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </ThemeProvider>
+        </SocketProvider>
       </body>
     </html>
   );
