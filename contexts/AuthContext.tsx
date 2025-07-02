@@ -69,6 +69,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Save token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Also set cookie for middleware
+      document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 days
+      
       setUser(data.user);
     } catch (error) {
       console.error('Login error:', error);
@@ -95,6 +99,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Save token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Also set cookie for middleware
+      document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 days
+      
       setUser(data.user);
     } catch (error) {
       console.error('Registration error:', error);
@@ -105,6 +113,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Also clear cookie
+    document.cookie = 'token=; path=/; max-age=0';
+    
     setUser(null);
   };
 
