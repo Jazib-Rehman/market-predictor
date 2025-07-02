@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <motion.div
         animate={{ width: sidebarCollapsed ? 80 : 288 }}
-        className={`h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-50 overflow-hidden flex flex-col ${sidebarCollapsed ? 'w-16' : 'w-72'}`}
+        className={`h-screen sticky top-0 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-50 overflow-hidden flex flex-col ${sidebarCollapsed ? 'w-16' : 'w-72'}`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}

@@ -3,7 +3,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { Bell, Clock, Sun, Moon, X as XIcon, PlusCircle } from 'lucide-react';
+import { Bell, Clock, Sun, Moon, X as XIcon, PlusCircle, Brain, TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function AiPredictionsPage() {
   const { user, loading } = useAuth();
@@ -20,6 +20,8 @@ export default function AiPredictionsPage() {
   const [modalAsset, setModalAsset] = useState('');
   const [modalDays, setModalDays] = useState('');
   const [modalNotes, setModalNotes] = useState('');
+  const [aiPredictions, setAiPredictions] = useState([]);
+  const [predictionsLoading, setPredictionsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -28,15 +30,29 @@ export default function AiPredictionsPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const allAssets = ['Bitcoin', 'Ethereum', 'Apple'];
+  // Fetch AI predictions
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      try {
+        const response = await fetch('/api/predictions');
+        const data = await response.json();
+        setAiPredictions(data);
+      } catch (error) {
+        console.error('Failed to fetch predictions:', error);
+      } finally {
+        setPredictionsLoading(false);
+      }
+    };
 
-  const aiPredictions = [
-    { asset: 'Bitcoin', timeframe: '24h', confidence: 85, direction: 'up', target: 45000 },
-    { asset: 'Ethereum', timeframe: '7d', confidence: 72, direction: 'down', target: 2500 },
-    { asset: 'Apple', timeframe: '30d', confidence: 91, direction: 'up', target: 210 },
-  ];
+    fetchPredictions();
+    // Refresh predictions every 5 minutes
+    const interval = setInterval(fetchPredictions, 300000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const filteredPredictions = aiPredictions.filter(pred =>
+  const allAssets = ['Bitcoin', 'Ethereum', 'Cardano', 'Polkadot', 'Chainlink'];
+
+  const filteredPredictions = aiPredictions.filter((pred: any) =>
     (selectedAssets.length === 0 || selectedAssets.includes(pred.asset)) &&
     (timeframeFilter === 'All' || pred.timeframe === timeframeFilter)
   );
@@ -57,195 +73,269 @@ export default function AiPredictionsPage() {
           {showInfo && (
             <div className="relative mb-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 flex items-start">
               <div className="flex-1">
-                <h3 className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-1">How AI Market Predictions Work</h3>
+                <h3 className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-1 flex items-center">
+                  <Brain className="w-5 h-5 mr-2" />
+                  AI-Powered Market Predictions
+                </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Our AI models analyze real-time market data and historical trends to provide actionable predictions for top assets. Use the filters below to customize the view. Confidence scores indicate the AI's certainty in each prediction.
+                  Our AI analyzes price trends, technical indicators, and market momentum to generate predictions. Predictions update every 5 minutes with confidence scores and target prices.
                 </p>
               </div>
               <button onClick={() => setShowInfo(false)} className="ml-4 text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 text-xl leading-none">&times;</button>
             </div>
           )}
+
           {/* Filters and Ask Button Row */}
-          <div className="flex flex-wrap gap-4 mb-4 items-end justify-between">
-            <div className="flex flex-wrap gap-4 items-center">
-              {/* Asset Multiselect */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Asset Filter */}
               <div className="relative">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Assets</label>
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Search assets..."
                     value={assetSearch}
-                    onChange={e => setAssetSearch(e.target.value)}
+                    onChange={(e) => setAssetSearch(e.target.value)}
                     onFocus={() => setShowAssetDropdown(true)}
                     onBlur={() => {
-                      assetDropdownTimeout.current = setTimeout(() => setShowAssetDropdown(false), 120);
+                      assetDropdownTimeout.current = setTimeout(() => setShowAssetDropdown(false), 200);
                     }}
-                    className="w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white pr-8"
+                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   />
-                  {assetSearch && (
+                  {selectedAssets.length > 0 && (
                     <button
-                      type="button"
-                      className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                      onClick={() => setAssetSearch('')}
-                      tabIndex={-1}
+                      onClick={() => {
+                        setSelectedAssets([]);
+                        setAssetSearch('');
+                      }}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       <XIcon className="w-4 h-4" />
                     </button>
                   )}
                 </div>
+                
                 {showAssetDropdown && (
-                  <div
-                    className="absolute z-10 mt-1 max-h-32 w-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm"
-                    onMouseDown={e => e.preventDefault()}
-                  >
-                    {allAssets.filter(a => a.toLowerCase().includes(assetSearch.toLowerCase())).map(asset => (
-                      <label key={asset} className="flex items-center px-3 py-1 cursor-pointer text-sm text-slate-700 dark:text-slate-200">
-                        <input
-                          type="checkbox"
-                          checked={selectedAssets.includes(asset)}
-                          onChange={e => {
-                            setSelectedAssets(sel =>
-                              e.target.checked
-                                ? [...sel, asset]
-                                : sel.filter(a => a !== asset)
-                            );
-                          }}
-                          className="mr-2 accent-blue-500"
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
+                    {allAssets
+                      .filter(asset => asset.toLowerCase().includes(assetSearch.toLowerCase()))
+                      .map(asset => (
+                        <button
+                          key={asset}
                           onClick={() => {
-                            if (assetDropdownTimeout.current) clearTimeout(assetDropdownTimeout.current);
+                            if (!selectedAssets.includes(asset)) {
+                              setSelectedAssets([...selectedAssets, asset]);
+                            }
+                            setAssetSearch('');
+                            setShowAssetDropdown(false);
+                            if (assetDropdownTimeout.current) {
+                              clearTimeout(assetDropdownTimeout.current);
+                            }
                           }}
-                        />
-                        {asset}
-                      </label>
-                    ))}
-                    {allAssets.filter(a => a.toLowerCase().includes(assetSearch.toLowerCase())).length === 0 && (
-                      <div className="px-3 py-2 text-slate-400">No assets found</div>
-                    )}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white first:rounded-t-lg last:rounded-b-lg"
+                        >
+                          {asset}
+                        </button>
+                      ))}
                   </div>
                 )}
               </div>
+
               {/* Timeframe Filter */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Timeframe</label>
-                <select
-                  value={timeframeFilter}
-                  onChange={e => setTimeframeFilter(e.target.value)}
-                  className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                >
-                  <option>All</option>
-                  <option>24h</option>
-                  <option>3d</option>
-                  <option>7d</option>
-                  <option>30d</option>
-                </select>
-              </div>
+              <select
+                value={timeframeFilter}
+                onChange={(e) => setTimeframeFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+                <option value="All">All Timeframes</option>
+                <option value="24h">24 Hours</option>
+                <option value="7d">7 Days</option>
+                <option value="30d">30 Days</option>
+              </select>
             </div>
+
+            {/* Ask for Prediction Button */}
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition-colors text-sm font-medium whitespace-nowrap"
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              <PlusCircle className="w-4 h-4" /> Ask for prediction
+              <PlusCircle className="w-4 h-4" />
+              <span>Request Prediction</span>
             </button>
           </div>
+
+          {/* Selected Assets Display */}
+          {selectedAssets.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {selectedAssets.map(asset => (
+                <span
+                  key={asset}
+                  className="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm"
+                >
+                  <span>{asset}</span>
+                  <button
+                    onClick={() => setSelectedAssets(selectedAssets.filter(a => a !== asset))}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* AI Predictions List */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">AI Predictions</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center">
+                <Brain className="w-5 h-5 mr-2 text-blue-500" />
+                AI Predictions
+                {predictionsLoading && (
+                  <div className="ml-3 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                )}
+              </h3>
             </div>
             <div className="divide-y divide-slate-200 dark:divide-slate-700">
-              {filteredPredictions.map((prediction, index) => (
-                <div
-                  key={prediction.asset}
-                  className="flex items-center justify-between p-6"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900 dark:text-white">{prediction.asset}</p>
-                    <p className="text-sm text-slate-500">{prediction.timeframe}</p>
-                  </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <p className="text-sm text-slate-500">Confidence</p>
-                      <p className="font-semibold text-slate-900 dark:text-white">{prediction.confidence}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-slate-500">Target</p>
-                      <p className="font-semibold text-slate-900 dark:text-white">${prediction.target.toLocaleString()}</p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      prediction.direction === 'up' 
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
-                      {prediction.direction === 'up' ? 'Bullish' : 'Bearish'}
-                    </div>
-                  </div>
+              {predictionsLoading ? (
+                <div className="p-6 text-center">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-slate-500">Generating AI predictions...</p>
                 </div>
-              ))}
-              {filteredPredictions.length === 0 && (
-                <div className="p-6 text-slate-500 dark:text-slate-400 text-center">No predictions found for selected filters.</div>
+              ) : filteredPredictions.length === 0 ? (
+                <div className="p-6 text-center text-slate-500">
+                  No predictions match your filters.
+                </div>
+              ) : (
+                filteredPredictions.map((prediction: any, index) => (
+                  <div
+                    key={prediction.asset}
+                    className="p-6"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-violet-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">{prediction.asset.slice(0, 3).toUpperCase()}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-white">{prediction.asset}</p>
+                          <p className="text-sm text-slate-500">{prediction.timeframe} prediction</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-center">
+                          <p className="text-sm text-slate-500">Current</p>
+                          <p className="font-semibold text-slate-900 dark:text-white">${prediction.currentPrice.toLocaleString()}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-slate-500">Target</p>
+                          <p className="font-semibold text-slate-900 dark:text-white">${prediction.target.toLocaleString()}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-slate-500">Confidence</p>
+                          <p className="font-semibold text-slate-900 dark:text-white">{prediction.confidence}%</p>
+                        </div>
+                        <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${
+                          prediction.direction === 'up' 
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                            : prediction.direction === 'down'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                        }`}>
+                          {prediction.direction === 'up' ? (
+                            <TrendingUp className="w-4 h-4" />
+                          ) : prediction.direction === 'down' ? (
+                            <TrendingDown className="w-4 h-4" />
+                          ) : null}
+                          <span>
+                            {prediction.direction === 'up' ? 'Bullish' : 
+                             prediction.direction === 'down' ? 'Bearish' : 'Neutral'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
+                        <strong>AI Analysis:</strong> {prediction.analysis}
+                      </p>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
-
-          {/* Modal */}
-          {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6 relative">
-                <button
-                  className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                  onClick={() => setShowModal(false)}
-                  aria-label="Close"
-                >
-                  <XIcon className="w-5 h-5" />
-                </button>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Ask for AI Prediction</h2>
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Coin/Company</label>
-                    <input
-                      type="text"
-                      value={modalAsset}
-                      onChange={e => setModalAsset(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                      placeholder="e.g. Bitcoin, Apple"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Days to Predict</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={modalDays}
-                      onChange={e => setModalDays(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                      placeholder="e.g. 7"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Notes (optional)</label>
-                    <textarea
-                      value={modalNotes}
-                      onChange={e => setModalNotes(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                      rows={3}
-                      placeholder="Any additional info or requirements..."
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow text-sm font-medium"
-                      onClick={() => setShowModal(false)}
-                    >
-                      Submit Request
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
         </div>
       </main>
+
+      {/* Request Prediction Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Request Custom Prediction</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Coin/Company
+                </label>
+                <input
+                  type="text"
+                  value={modalAsset}
+                  onChange={(e) => setModalAsset(e.target.value)}
+                  placeholder="e.g., Bitcoin, Apple"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Days to Predict
+                </label>
+                <select
+                  value={modalDays}
+                  onChange={(e) => setModalDays(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                >
+                  <option value="">Select timeframe</option>
+                  <option value="1">1 Day</option>
+                  <option value="7">7 Days</option>
+                  <option value="30">30 Days</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  value={modalNotes}
+                  onChange={(e) => setModalNotes(e.target.value)}
+                  placeholder="Any specific factors to consider..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Handle prediction request
+                    console.log('Requesting prediction for:', modalAsset, modalDays, modalNotes);
+                    setShowModal(false);
+                    setModalAsset('');
+                    setModalDays('');
+                    setModalNotes('');
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                >
+                  Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
