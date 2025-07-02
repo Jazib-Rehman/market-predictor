@@ -23,7 +23,7 @@ import { motion } from 'framer-motion';
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, href: '/dashboard' },
   { id: 'predictions', label: 'AI Predictions', icon: TrendingUp, href: '/dashboard/ai-predictions' },
-  { id: 'portfolio', label: 'Portfolio', icon: Wallet, href: '#' },
+  { id: 'portfolio', label: 'Portfolio', icon: Wallet, href: '/dashboard/portfolio' },
   { id: 'watchlist', label: 'Watchlist', icon: Eye, href: '#' },
 ];
 
