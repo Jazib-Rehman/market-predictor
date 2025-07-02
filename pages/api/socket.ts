@@ -31,11 +31,11 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
       });
     });
     
-    // Test confetti - uncomment to test
-    setTimeout(() => {
-      console.log('Emitting test celebrate event');
-      io.emit('celebrate', {asset: 'Bitcoin', direction: 'up'});
-    }, 3000);
+    // Test confetti disabled
+    // setTimeout(() => {
+    //   console.log('Emitting test celebrate event');
+    //   io.emit('celebrate', {asset: 'Bitcoin', direction: 'up'});
+    // }, 3000);
     
     console.log('Socket.IO server initialized');
   } else {
