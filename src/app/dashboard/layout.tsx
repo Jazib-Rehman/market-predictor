@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   BarChart3,
   TrendingUp,
@@ -31,6 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, logout, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState('overview');
@@ -57,7 +58,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       {/* Sidebar */}
-      {/* Sidebar */}
       <motion.div
         animate={{ width: sidebarCollapsed ? 80 : 288 }}
         className={`h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-50 overflow-hidden flex flex-col ${sidebarCollapsed ? 'w-16' : 'w-72'}`}
@@ -81,16 +81,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
+                const isActive = pathname === tab.href || (tab.href !== '/dashboard' && pathname.startsWith(tab.href));
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => {
-                      setActiveTab(tab.id);
-                      router.push(tab.href);
-                    }}
+                    onClick={() => router.push(tab.href)}
                     title={tab.label}
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'space-x-3'} px-4 py-3 rounded-lg transition-all duration-200 ${
-                      activeTab === tab.id
+                      isActive
                         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
