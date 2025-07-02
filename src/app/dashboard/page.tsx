@@ -297,20 +297,16 @@ export default function DashboardPage() {
                           <p className="text-sm text-slate-500">{asset.symbol}</p>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-6">
-                        <div className="w-20 h-12">
+                      <div className="flex items-center space-x-4 min-w-[100px]">
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          ${asset.price.toLocaleString()}
+                        </p>
+                        <p className={`text-sm font-medium ${asset.change >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {asset.change >= 0 ? '+' : ''}{asset.change}%
+                        </p>
+                        <div className="w-32 h-16 mt-1">
                           <SimpleChart data={asset.chartData} />
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-900 dark:text-white">
-                            ${asset.price.toLocaleString()}
-                          </p>
-                          <p className={`text-sm font-medium ${asset.change >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {asset.change >= 0 ? '+' : ''}{asset.change}%
-                          </p>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-slate-400" />
                       </div>
                     </div>
                   ))}
