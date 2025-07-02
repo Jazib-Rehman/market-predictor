@@ -26,6 +26,7 @@ import confetti from 'canvas-confetti';
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3, href: '/dashboard' },
   { id: 'charts', label: 'Charts', icon: TrendingUp, href: '/dashboard/charts' },
+  { id: 'indicators', label: 'Indicators', icon: BarChart3, href: '/dashboard/indicators' },
   { id: 'predictions', label: 'AI Predictions', icon: TrendingUp, href: '/dashboard/ai-predictions' },
   { id: 'portfolio', label: 'Portfolio', icon: Wallet, href: '/dashboard/portfolio' },
   { id: 'watchlist', label: 'Watchlist', icon: Eye, href: '#' },

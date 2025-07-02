@@ -241,7 +241,7 @@ export default function AiPredictionsPage() {
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-slate-500">Target</p>
-                          <p className="font-semibold text-slate-900 dark:text-white">${prediction.target.toLocaleString()}</p>
+                          <p className="font-semibold text-slate-900 dark:text-white">${prediction.targetPrice.toLocaleString()}</p>
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-slate-500">Confidence</p>
